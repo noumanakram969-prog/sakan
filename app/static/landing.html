@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="A WhatsApp lead agent for Dubai property brokerages, with the Meta ads automation that feeds it.">
+<title>Sakan — WhatsApp lead agent for Dubai property</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+
+</head>
+<body>
+<style>
+/* Layout: a narrow reading column, with the WhatsApp thread as the hero object.
+   Everything else is evidence hung off that one artefact. */
+:root{
+  --ground:#f4f5f3;        /* paper, biased very slightly green */
+  --surface:#ffffff;
+  --ink:#16201c;           /* near-black with a green cast */
+  --muted:#5d6b64;
+  --line:#dfe3df;
+  --jade:#0f7a5a;          /* the one signal colour */
+  --jade-soft:#e3f1ea;
+  --amber:#8a5a12;         /* data / register figures */
+  --stop:#9c2f2f;          /* blocked, refused */
+  --stop-soft:#f6e6e4;
+
+  --display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+  --body:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0e1512; --surface:#151e1a; --ink:#e7ece9; --muted:#9aa8a1;
+    --line:#26322c; --jade:#4cc49a; --jade-soft:#1b3b2e;
+    --amber:#d9a85f; --stop:#e08b84; --stop-soft:#2e1a19;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0e1512; --surface:#151e1a; --ink:#e7ece9; --muted:#9aa8a1;
+  --line:#26322c; --jade:#4cc49a; --jade-soft:#1b3b2e;
+  --amber:#d9a85f; --stop:#e08b84; --stop-soft:#2e1a19;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--ground); color:var(--ink);
+  font-family:var(--body); font-size:16px; line-height:1.55;
+  margin:0; padding-inline:20px; padding-block:0;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1060px;margin-inline:auto;padding-block:clamp(40px,7vw,88px)}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.08}
+p{margin:0}
+a{color:inherit}
+
+.eyebrow{
+  font-family:var(--mono); font-size:11px; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--muted);
+}
+
+/* ---- hero ---- */
+.hero{display:grid;grid-template-columns:1fr 380px;gap:clamp(28px,5vw,64px);align-items:start}
+@media (max-width:860px){.hero{grid-template-columns:1fr}}
+.hero h1{font-size:clamp(44px,7vw,78px);font-weight:800;letter-spacing:-.03em}
+.hero .lede{font-size:clamp(17px,2vw,21px);color:var(--muted);max-width:30em;margin-top:18px}
+.hero .sub{margin-top:14px;max-width:34em}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
+.pill{
+  font-family:var(--mono);font-size:11.5px;padding:5px 10px;border-radius:999px;
+  border:1px solid var(--line);background:var(--surface);color:var(--muted);
+}
+
+/* ---- whatsapp thread ---- */
+.phone{
+  background:var(--surface);border:1px solid var(--line);border-radius:18px;
+  padding:16px 14px 18px;display:flex;flex-direction:column;gap:9px;min-width:0;
+  box-shadow:0 1px 0 var(--line), 0 18px 40px -28px rgba(0,0,0,.45);
+}
+.phone .head{
+  display:flex;align-items:center;gap:9px;padding-bottom:12px;margin-bottom:3px;
+  border-bottom:1px solid var(--line);
+}
+.avatar{
+  width:30px;height:30px;border-radius:50%;background:var(--jade);color:#fff;
+  display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:14px;
+}
+.who{font-weight:600;font-size:14px;line-height:1.2}
+.status{font-family:var(--mono);font-size:10.5px;color:var(--jade)}
+.msg{max-width:88%;padding:9px 12px;border-radius:14px;font-size:14px;line-height:1.45}
+.msg.them{align-self:flex-start;background:var(--ground);border:1px solid var(--line);border-bottom-left-radius:5px}
+.msg.us{align-self:flex-end;background:var(--jade-soft);border:1px solid transparent;border-bottom-right-radius:5px}
+:root[data-theme="dark"] .msg.us,
+:root:not([data-theme="light"]) .msg.us{border-color:var(--line)}
+.msg b{font-weight:600}
+.msg .price{font-family:var(--mono);font-weight:500}
+.flag{
+  align-self:flex-end;font-family:var(--mono);font-size:10.5px;color:var(--stop);
+  background:var(--stop-soft);padding:3px 8px;border-radius:6px;
+}
+
+/* ---- sections ---- */
+section{margin-top:clamp(56px,9vw,104px)}
+.sec-head{max-width:40em}
+.sec-head h2{font-size:clamp(26px,3.6vw,38px);font-weight:600;letter-spacing:-.02em;margin-top:10px}
+.sec-head p{color:var(--muted);margin-top:14px;max-width:34em}
+
+.rules{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:30px}
+@media (max-width:760px){.rules{grid-template-columns:1fr}}
+.rule{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;min-width:0}
+.rule h3{font-size:19px;font-weight:600;letter-spacing:-.01em}
+.rule p{color:var(--muted);font-size:14.5px;margin-top:10px}
+.rule .demo{
+  margin-top:16px;border-top:1px dashed var(--line);padding-top:14px;
+  font-family:var(--mono);font-size:12.5px;line-height:1.6;
+}
+.demo .lbl{color:var(--muted)}
+.demo .bad{color:var(--stop);text-decoration:line-through;text-decoration-thickness:1px}
+.demo .good{color:var(--jade)}
+
+/* ---- lead card ---- */
+.lead{
+  margin-top:28px;background:var(--surface);border:1px solid var(--line);
+  border-radius:14px;overflow:hidden;
+}
+.lead .bar{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.badge{
+  font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.08em;
+  padding:4px 9px;border-radius:6px;background:var(--jade);color:#fff;
+}
+.lead .bar .t{font-weight:600;font-size:14.5px}
+.lead dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:0;margin:0}
+.lead dl>div{padding:15px 18px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-width:0}
+.lead dt{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.lead dd{margin:6px 0 0;font-size:15px;font-weight:500;font-variant-numeric:tabular-nums}
+.lead .why{padding:14px 18px;color:var(--muted);font-size:13.5px}
+
+/* ---- loop ---- */
+.loop{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:30px;counter-reset:s}
+@media (max-width:760px){.loop{grid-template-columns:1fr 1fr}}
+@media (max-width:420px){.loop{grid-template-columns:1fr}}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;min-width:0}
+.step .n{font-family:var(--mono);font-size:11px;color:var(--jade)}
+.step h3{font-size:15.5px;font-weight:600;margin-top:9px}
+.step p{font-size:13.5px;color:var(--muted);margin-top:7px}
+
+/* ---- stack table ---- */
+.stack{margin-top:28px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface)}
+.stack .row{display:grid;grid-template-columns:200px 1fr;gap:0;border-bottom:1px solid var(--line)}
+.stack .row:last-child{border-bottom:0}
+@media (max-width:620px){.stack .row{grid-template-columns:1fr}}
+.stack .k{padding:14px 18px;font-family:var(--mono);font-size:12px;color:var(--muted);border-right:1px solid var(--line)}
+@media (max-width:620px){.stack .k{border-right:0;padding-bottom:0}}
+.stack .v{padding:14px 18px;font-size:14.5px;min-width:0}
+
+/* ---- footer ---- */
+footer{margin-top:clamp(56px,9vw,100px);border-top:1px solid var(--line);padding-block:26px 8px}
+.flinks{display:flex;flex-wrap:wrap;gap:10px}
+.flink{
+  font-family:var(--mono);font-size:12.5px;padding:9px 14px;border-radius:9px;
+  border:1px solid var(--line);background:var(--surface);text-decoration:none;
+}
+.flink:hover{border-color:var(--jade);color:var(--jade)}
+.note{color:var(--muted);font-size:13px;margin-top:18px;max-width:46em}
+</style>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div>
+      <div class="eyebrow">WhatsApp lead agent · Dubai property</div>
+      <h1>Sakan</h1>
+      <p class="lede">Answers a buyer at 11pm in their own language, quotes only prices the brokerage actually filed, and hands the sales floor a graded lead.</p>
+      <p class="sub">It will not invent a price and it will not tell anyone what something is worth. Both refusals are enforced in code, not asked for in a prompt.</p>
+      <div class="pills">
+        <span class="pill">Arabic · Urdu · Hindi · English</span>
+        <span class="pill">Meta WhatsApp Cloud API</span>
+        <span class="pill">73 tests</span>
+      </div>
+    </div>
+
+    <div class="phone">
+      <div class="head">
+        <div class="avatar">S</div>
+        <div>
+          <div class="who">Dubai brokerage</div>
+          <div class="status">● online · replies in seconds</div>
+        </div>
+      </div>
+
+      <div class="msg them">2 bed in JVC how much?</div>
+      <div class="msg us">
+        <b>Binghatti Aurora</b>, JVC — 2 bed from <span class="price">AED 1,450,000</span><br>
+        <b>Belgravia Heights III</b>, JVC — 2 bed from <span class="price">AED 1,850,000</span>
+      </div>
+
+      <div class="msg them">whats the payment plan</div>
+      <div class="msg us"><b>Binghatti Aurora</b> — 70/30, 70% during construction, 30% on handover</div>
+
+      <div class="msg them">and in Palm Jumeirah?</div>
+      <div class="msg us">We don't cover that one. Which area did you have in mind?</div>
+
+      <div class="msg them">is it a good investment? what roi</div>
+      <div class="msg us">That's a conversation worth having properly — one of our agents will call you and go through the numbers.</div>
+      <div class="flag">handover → human · advice</div>
+    </div>
+  </div>
+
+  <section>
+    <div class="sec-head">
+      <div class="eyebrow">The two refusals</div>
+      <h2>A chatbot that is usually right is no use here.</h2>
+      <p>A buyer repeats your number to their bank. One invented figure is the brokerage's problem, not the model's — so the model is never the source of one.</p>
+    </div>
+
+    <div class="rules">
+      <div class="rule">
+        <h3>It cannot invent a price</h3>
+        <p>Every figure is read from the brokerage's own inventory file. An outbound guard holds the set of numbers those facts support, and a reply carrying anything else never leaves the process — it becomes a handover instead.</p>
+        <div class="demo">
+          <div class="lbl">model wrote</div>
+          <div class="bad">"around AED 1,250,000, you'll see 9% yield"</div>
+          <div class="lbl" style="margin-top:9px">customer received</div>
+          <div class="good">"Let me have an agent confirm the exact figures and call you."</div>
+        </div>
+      </div>
+
+      <div class="rule">
+        <h3>It gives no investment advice</h3>
+        <p>Yield, appreciation, whether an area is going up, whether to buy — always a person. Checked <i>before</i> the price lookup, so an ROI question hiding inside a price question still reaches a human. That is RERA exposure, not politeness.</p>
+        <div class="demo">
+          <div class="lbl">asked</div>
+          <div>"what's the ROI on a 2 bed in JVC and how much is it?"</div>
+          <div class="lbl" style="margin-top:9px">routed</div>
+          <div class="good">handover · reason: advice</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <div class="eyebrow">What the sales floor gets</div>
+      <h2>One line, with the reason attached.</h2>
+      <p>Five signals, read out of whatever the buyer volunteers. Asking again for something they just said is the fastest way to lose a chat, so one message can fill all five. A grade nobody can predict is one the floor stops trusting, so every grade carries why.</p>
+    </div>
+
+    <div class="lead">
+      <div class="bar">
+        <span class="badge">HOT</span>
+        <span class="t">+971 5• ••• ••47</span>
+      </div>
+      <dl>
+        <div><dt>Budget</dt><dd>AED 1.5m</dd></div>
+        <div><dt>Size</dt><dd>2 bedroom</dd></div>
+        <div><dt>Area</dt><dd>JVC</dd></div>
+        <div><dt>Timeline</dt><dd>This month</dd></div>
+        <div><dt>Purpose</dt><dd>Investment</dd></div>
+        <div><dt>Payment</dt><dd>Cash</dd></div>
+      </dl>
+      <div class="why">Graded hot: buying now, cash. Said "cash" after asking about mortgages earlier — the later statement wins, so nobody rings them about financing.</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <div class="eyebrow">The loop</div>
+      <h2>The ads and the agent are one system.</h2>
+      <p>Split them and the optimiser never learns which campaign produced a buyer rather than a click.</p>
+    </div>
+
+    <div class="loop">
+      <div class="step">
+        <div class="n">01</div>
+        <h3>The ad</h3>
+        <p>Built on the Marketing API — campaign, ad set, creative test. Created paused, always.</p>
+      </div>
+      <div class="step">
+        <div class="n">02</div>
+        <h3>The chat</h3>
+        <p>The click opens WhatsApp. The agent answers in seconds, in the language they typed.</p>
+      </div>
+      <div class="step">
+        <div class="n">03</div>
+        <h3>The agent</h3>
+        <p>A graded lead reaches a human, with the whole conversation attached.</p>
+      </div>
+      <div class="step">
+        <div class="n">04</div>
+        <h3>Back to the ad</h3>
+        <p>The booking is reported through the Conversions API, hashed and deduplicated, so the campaign optimises on customers.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <div class="eyebrow">Under it</div>
+      <h2>Built so the dangerous things are impossible.</h2>
+    </div>
+
+    <div class="stack">
+      <div class="row">
+        <div class="k">campaigns</div>
+        <div class="v">Nothing is created active. Campaigns, ad sets and ads are written <span style="font-family:var(--mono);font-size:13px">PAUSED</span> with no override; activating is a separate call that logs a warning.</div>
+      </div>
+      <div class="row">
+        <div class="k">budgets</div>
+        <div class="v">Minor units, checked. A float raises <span style="font-family:var(--mono);font-size:13px">TypeError</span> — <span style="font-family:var(--mono);font-size:13px">50.0</span> means AED 50 to a person and AED 0.50 to Meta.</div>
+      </div>
+      <div class="row">
+        <div class="k">budget rules</div>
+        <div class="v">Deciding is separate from doing. Evaluation is a pure function; applying defaults to a dry run, needs a minimum sample before forming an opinion, and moves a budget by one bounded step at most.</div>
+      </div>
+      <div class="row">
+        <div class="k">conversions</div>
+        <div class="v">Personal data is SHA-256'd after normalising, with no flag to skip it, and every event carries an id so the pixel and the server deduplicate. Without that, cost per lead reads at half its real value.</div>
+      </div>
+      <div class="row">
+        <div class="k">retries</div>
+        <div class="v">Selective. Meta answers a rate limit and your own malformed request with the same HTTP 400, so only the documented transient codes are retried.</div>
+      </div>
+      <div class="row">
+        <div class="k">stack</div>
+        <div class="v">Python 3.11 · FastAPI · Claude and OpenAI behind one layer · WhatsApp Cloud API · Meta Marketing &amp; Conversions API · PostgreSQL · Docker</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="eyebrow">Code and the production version</div>
+    <div class="flinks" style="margin-top:14px">
+      <a class="flink" href="https://github.com/noumanakram969-prog/sakan">github.com/noumanakram969-prog/sakan</a>
+      <a class="flink" href="https://mistri.offpageos.com">mistri.offpageos.com — same engine, live</a>
+    </div>
+    <p class="note">Sakan is the property build. The same agent runs in production on a live WhatsApp Business number in another vertical, where the transport, model layer, outbound guard and ads automation have been in service since September. The inventory shown here is a demo file — five real Dubai projects with filed handover dates and DLD project numbers, used so the agent, the tests and this page all work before a brokerage hands over its own stock list.</p>
+  </footer>
+
+</div>
+</body>
+</html>

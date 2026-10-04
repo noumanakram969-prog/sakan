@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import BackgroundTasks, FastAPI, Request, Response
+from fastapi.responses import HTMLResponse
 
 from . import guard, llm, whatsapp
 from .config import settings
@@ -44,6 +45,20 @@ async def lifespan(_app: FastAPI):
 
 
 app = FastAPI(title="Sakan", lifespan=lifespan)
+
+
+_LANDING = Path(__file__).parent / "static" / "landing.html"
+
+
+@app.get("/", response_class=HTMLResponse)
+def landing() -> HTMLResponse:
+    """The page a brokerage sees. Read from disk each time rather than cached at
+    import, so editing the copy does not need a restart."""
+    try:
+        return HTMLResponse(_LANDING.read_text(encoding="utf-8"))
+    except OSError:
+        return HTMLResponse("<h1>Sakan</h1><p>WhatsApp lead agent for Dubai property.</p>",
+                            status_code=200)
 
 
 @app.get("/health")
