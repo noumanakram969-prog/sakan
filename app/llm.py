@@ -17,6 +17,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
+from . import cost
 from .config import settings
 
 log = logging.getLogger(__name__)
@@ -57,14 +58,24 @@ def _openai_client(api_key: str):
 
 
 def _complete(system: str, messages: list[dict[str, str]], max_tokens: int, want_json: bool,
-              model: str | None = None) -> str:
+              model: str | None = None, meter=None, conversation: str = "-") -> str:
     """One model call, provider-agnostic. Returns the assistant's text.
 
     Any failure — no key, bad network, a refusal — becomes LLMUnavailable, and
     the engine turns that into a handoff. The model is never trusted to fail
     safely on its own.
+
+    When a meter is passed, the caps are checked **before** the call and the
+    tokens the provider reports are recorded after it. Checking first is the
+    whole point: a ceiling enforced after the spend is a report, not a cap.
     """
     provider = (settings.llm_provider or "anthropic").lower()
+
+    if meter is not None:
+        # CapExceeded is deliberately not caught here. It is not a model
+        # failure, so it must not be flattened into LLMUnavailable - the engine
+        # treats the two differently.
+        meter.check(conversation)
 
     try:
         if provider == "openai":
@@ -79,6 +90,7 @@ def _complete(system: str, messages: list[dict[str, str]], max_tokens: int, want
             if want_json:
                 kwargs["response_format"] = {"type": "json_object"}
             resp = client.chat.completions.create(**kwargs)
+            _meter(meter, conversation, kwargs["model"], resp)
             return (resp.choices[0].message.content or "").strip()
 
         # default: anthropic
@@ -91,14 +103,27 @@ def _complete(system: str, messages: list[dict[str, str]], max_tokens: int, want
             system=system,
             messages=messages,
         )
+        _meter(meter, conversation, settings.anthropic_model, resp)
         return "".join(
             b.text for b in resp.content if getattr(b, "type", "") == "text"
         ).strip()
 
-    except LLMUnavailable:
+    except (LLMUnavailable, cost.CapExceeded):
         raise
     except Exception as exc:  # network, rate limit, refusal, anything
         raise LLMUnavailable("%s: %s" % (provider, exc)) from exc
+
+
+def _meter(meter, conversation: str, model: str, resp) -> None:
+    if meter is None:
+        return
+    inp, out = cost.tokens_from_response(resp)
+    if inp == 0 and out == 0:
+        # Better to say the provider told us nothing than to invent an estimate
+        # and have the ledger quietly disagree with the invoice.
+        log.warning("%s returned no usage - this call is unmetered", model)
+        return
+    meter.record(conversation, model, inp, out)
 
 
 # --------------------------------------------------------------------------- the two calls
@@ -142,8 +167,15 @@ def _parse_json(raw: str) -> dict[str, Any]:
     return data
 
 
-def compose(garage_name: str, facts: str, message: str, history: list[dict[str, str]] | None = None) -> str:
-    """Write the reply from the facts. The model sees no price sheet, only what was looked up."""
-    system = prompt("system").replace("{{garage_name}}", garage_name).replace("{{facts}}", facts)
+def compose(agency_name: str, facts: str, message: str,
+            history: list[dict[str, str]] | None = None,
+            *, meter=None, conversation: str = "-") -> str:
+    """Write the reply from the facts. The model never sees the inventory, only
+    what was already looked up out of it."""
+    system = (prompt("system")
+              .replace("{{agency_name}}", agency_name)
+              .replace("{{garage_name}}", agency_name)      # older prompt token
+              .replace("{{facts}}", facts))
     messages = list(history or [])[-MAX_HISTORY:] + [{"role": "user", "content": message}]
-    return _complete(system, messages, max_tokens=300, want_json=False)
+    return _complete(system, messages, max_tokens=300, want_json=False,
+                     meter=meter, conversation=conversation)

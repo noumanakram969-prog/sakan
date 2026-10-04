@@ -130,10 +130,27 @@ Full architecture, credentials handling and runbook: [docs/ADS.md](docs/ADS.md).
 
 ---
 
+## What it costs to run
+
+An agent that answers every message is a variable cost on every message, and the bill surprises you in two ways: one runaway thread, or a quiet drift upward that no single reply makes visible.
+
+Every model call is metered where it is made, attributed to the conversation that caused it, and checked against three ceilings **before** the call — a ceiling enforced afterwards is a report, not a cap. Going over is not an error; it hands the customer to a human, the same as anything else the agent cannot do safely.
+
+```
+reply 1: $0.00780   running $0.0078
+reply 2: $0.00780   running $0.0156
+reply 3: $0.00780   running $0.0234
+reply 4: REFUSED → usd per conversation today (0.0234 of 0.02) → handover
+```
+
+`GET /cost` returns the month, the cost per call and the ten costliest conversations, with the numbers redacted to their last four digits. `GET /health` carries the running month total, so spend is visible without opening a dashboard.
+
+An unknown model bills at the **highest** rate we know rather than at zero — a model that reports as free is how an overrun goes unnoticed. Prices are data, overridable with `LLM_PRICES_JSON`, because a provider's price list changes without asking us.
+
 ## Tests
 
 ```
-73 tests · model and Meta stubbed throughout · no network
+91 tests · model and Meta stubbed throughout · no network
 .venv/Scripts/python -m pytest tests/test_property.py tests/test_ads.py -q
 ```
 
@@ -150,6 +167,7 @@ app/property/
   inventory.py   price retrieval, never generation. Parses beds/area/budget as people type them.
   qualify.py     the five signals, the next question, the grade and its reason
   engine.py      one message in, one reply out
+app/cost.py      token metering, per-conversation and monthly caps, the spend report
 app/ads/
   client.py      the only thing that speaks HTTP to Meta
   campaigns.py   campaign -> ad set -> creative -> ad. All PAUSED.

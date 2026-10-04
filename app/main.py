@@ -21,7 +21,7 @@ from typing import Any
 from fastapi import BackgroundTasks, FastAPI, Request, Response
 from fastapi.responses import HTMLResponse
 
-from . import guard, llm, whatsapp
+from . import cost, guard, llm, whatsapp
 from .config import settings
 from .property import Lead, engine, inventory, qualify
 
@@ -33,6 +33,10 @@ AGENCIES = Path("agencies")
 
 # phone number -> what we know about them so far.
 _LEADS: dict[str, Lead] = {}
+
+# What the agent costs to run. Caps are checked before each model call, so a
+# runaway thread hands over to a human instead of quietly spending the month.
+METER = cost.Meter(path="cost-ledger.json")
 _AGENCY: inventory.Agency | None = None
 
 
@@ -63,12 +67,25 @@ def landing() -> HTMLResponse:
 
 @app.get("/health")
 def health() -> dict[str, Any]:
+    month = METER.month()
     return {
         "ok": True,
         "agency": AGENCY_ID,
         "projects": len(_AGENCY.projects) if _AGENCY else 0,
         "open_conversations": len(_LEADS),
+        "spend_this_month_usd": round(month.usd, 4),
+        "llm_calls_this_month": month.calls,
     }
+
+
+@app.get("/cost")
+def cost_report(month: str | None = None) -> dict[str, Any]:
+    """What the agent has cost, and which conversations cost it.
+
+    Numbers only - the conversation ids are redacted to the last four digits,
+    because a spend report is not a reason to put customer numbers anywhere.
+    """
+    return METER.report(month)
 
 
 @app.get("/webhook")
@@ -102,13 +119,22 @@ async def handle(number: str, text: str) -> None:
 
     lead = _LEADS.get(number, Lead())
 
-    reply = engine.respond(
-        text,
-        _AGENCY,
-        lead=lead,
-        compose=_compose,
-        guard=_guard,
-    )
+    try:
+        reply = engine.respond(
+            text,
+            _AGENCY,
+            lead=lead,
+            compose=lambda m, f: _compose(m, f, number),
+            guard=_guard,
+        )
+    except cost.CapExceeded as over:
+        # Over budget is not an error the customer should see. It is the same
+        # answer as any other thing the agent cannot do safely: a human.
+        log.warning("cost cap hit for %s: %s", number[-4:], over)
+        await whatsapp.send_text(
+            number, "One of our agents will call you shortly.")
+        log.info("HANDOVER (cost_cap) %s", qualify.summary(lead))
+        return
     _LEADS[number] = reply.lead
 
     try:
@@ -123,9 +149,15 @@ async def handle(number: str, text: str) -> None:
         log.info("HANDOVER (%s) %s", reply.handover_reason, qualify.summary(reply.lead))
 
 
-def _compose(message: str, facts: dict[str, Any]) -> str:
+def _compose(message: str, facts: dict[str, Any], conversation: str = "-") -> str:
     import json
-    return llm.compose(_AGENCY.id if _AGENCY else "", json.dumps(facts, ensure_ascii=False), message)
+    return llm.compose(
+        _AGENCY.id if _AGENCY else "",
+        json.dumps(facts, ensure_ascii=False),
+        message,
+        meter=METER,
+        conversation=conversation,
+    )
 
 
 def _guard(reply: str, allowed: set[str], money_allowed: bool):
