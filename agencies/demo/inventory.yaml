@@ -1,0 +1,99 @@
+# Demo inventory. Realistic Dubai off-plan numbers, but invented - this file
+# exists so the agent, the eval set and a sales demo all work before a real
+# brokerage has handed over its stock list.
+#
+# NOT a real brokerage. Do not connect a live WhatsApp number to this agency.
+#
+# Every price here is a STARTING price for that unit type in that project, which
+# is what a brokerage can actually stand behind. A specific unit's price depends
+# on floor, view and payment plan, and the agent is built never to guess it.
+
+currency: AED
+
+areas:
+  jvc: "Jumeirah Village Circle"
+  jvt: "Jumeirah Village Triangle"
+  dubai_hills: "Dubai Hills Estate"
+  business_bay: "Business Bay"
+  mbr_city: "Mohammed Bin Rashid City"
+
+projects:
+  - id: binghatti_aurora
+    name: "Binghatti Aurora"
+    area: jvc
+    developer: "Binghatti Developers"
+    status: off_plan            # off_plan | ready
+    handover: "Q4 2026"
+    dld_project_number: "2179"  # the filed number, not a brochure claim
+    payment_plan: "70/30 - 70% during construction, 30% on handover"
+    service_charge_psf: "14.50"
+    units:
+      studio:  {from: "650000",  size_sqft: "389"}
+      1bed:    {from: "950000",  size_sqft: "721"}
+      2bed:    {from: "1450000", size_sqft: "1102"}
+
+  - id: samana_waves
+    name: "Samana Waves"
+    area: jvc
+    developer: "Samana Developers"
+    status: off_plan
+    handover: "Q2 2027"
+    dld_project_number: "2241"
+    payment_plan: "60/40 with 1% monthly"
+    service_charge_psf: "13.00"
+    units:
+      studio:  {from: "720000",  size_sqft: "412"}
+      1bed:    {from: "1100000", size_sqft: "780"}
+
+  - id: ellington_belgravia
+    name: "Belgravia Heights III"
+    area: jvc
+    developer: "Ellington Properties"
+    status: ready
+    handover: "Completed"
+    dld_project_number: "1884"
+    service_charge_psf: "16.75"
+    units:
+      1bed:    {from: "1250000", size_sqft: "795"}
+      2bed:    {from: "1850000", size_sqft: "1240"}
+
+  - id: emaar_golf_place
+    name: "Golf Place Terraces"
+    area: dubai_hills
+    developer: "Emaar Properties"
+    status: ready
+    handover: "Completed"
+    dld_project_number: "1402"
+    service_charge_psf: "8.90"
+    units:
+      3bed:    {from: "6200000", size_sqft: "3150"}
+      4bed:    {from: "8900000", size_sqft: "4420"}
+
+  - id: peninsula_five
+    name: "Peninsula Five"
+    area: business_bay
+    developer: "Select Group"
+    status: off_plan
+    handover: "Q1 2027"
+    dld_project_number: "2098"
+    payment_plan: "50/50"
+    service_charge_psf: "18.00"
+    units:
+      1bed:    {from: "1750000", size_sqft: "755"}
+      2bed:    {from: "2600000", size_sqft: "1180"}
+
+# Questions the agent may answer from, because they are facts about how buying
+# works rather than advice about whether to buy.
+fees:
+  dld_transfer: "4% of the purchase price, plus AED 580 admin"
+  agency_commission: "2% of the purchase price"
+  mortgage_registration: "0.25% of the loan amount"
+  noc: "AED 500 to 5,000, set by the developer"
+
+# Minimum down payment set by the UAE Central Bank. A fact, not an opinion.
+mortgage:
+  expat_first_property_under_5m: "20% down payment"
+  expat_first_property_over_5m: "30% down payment"
+  uae_national_under_5m: "15% down payment"
+  second_property: "40% down payment"
+  off_plan: "50% down payment"

@@ -1,0 +1,40 @@
+# /etc/systemd/system/mistri.service
+#
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now mistri
+#   sudo systemctl status mistri
+#   journalctl -u mistri -f
+
+[Unit]
+Description=Mistri - WhatsApp assistant
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mistri
+Group=mistri
+WorkingDirectory=/opt/mistri
+EnvironmentFile=/opt/mistri/.env
+ExecStart=/opt/mistri/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --proxy-headers
+
+Restart=always
+RestartSec=5
+# One process only. The scheduler is in-process, so a second worker would send
+# every reminder twice.
+KillSignal=SIGINT
+TimeoutStopSec=20
+
+# The service needs its own directory and nothing else on the box.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/mistri
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=mistri
+
+[Install]
+WantedBy=multi-user.target

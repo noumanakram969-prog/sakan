@@ -1,0 +1,48 @@
+# Mistri + PostgreSQL.
+#
+#   cp .env.example .env     # fill the secrets
+#   docker compose up --build
+#
+# Works with podman-compose too, which is what the VPS has.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: mistri
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mistri_local_only}
+      POSTGRES_DB: mistri
+    volumes:
+      - mistri_pgdata:/var/lib/postgresql/data
+    # Not published to the host. The app reaches it over the compose network;
+    # nothing else needs to.
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mistri -d mistri"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  app:
+    build: .
+    env_file:
+      - .env
+    environment:
+      # Overrides whatever .env says, so the container never quietly writes to a
+      # SQLite file inside itself and loses the data on the next deploy.
+      DATABASE_URL: postgresql+psycopg://mistri:${POSTGRES_PASSWORD:-mistri_local_only}@db:5432/mistri
+    ports:
+      - "127.0.0.1:8123:8123"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      # Garage price sheets are edited by the owner through the web form, so they
+      # outlive the container.
+      - ./garages:/app/garages
+    restart: unless-stopped
+
+volumes:
+  mistri_pgdata:
