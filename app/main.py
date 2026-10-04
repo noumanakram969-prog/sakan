@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import BackgroundTasks, FastAPI, Request, Response
+from pydantic import BaseModel, Field
 from fastapi.responses import HTMLResponse
 
 from . import cost, db, guard, jobs, llm, store, whatsapp
@@ -123,6 +124,55 @@ def leads(hours: int = 24) -> dict[str, Any]:
                 for r in rows
             ],
         }
+
+
+class DemoTurn(BaseModel):
+    """One turn of the public demo.
+
+    The lead travels with the request rather than living in a session: the demo
+    is then stateless, two people trying it at once cannot collide, and nothing
+    a stranger types is written to the database.
+    """
+
+    text: str = Field(max_length=400)
+    lead: dict[str, Any] = Field(default_factory=dict)
+
+
+@app.post("/demo")
+def demo(turn: DemoTurn) -> dict[str, Any]:
+    """The agent, answering anyone who opens the page.
+
+    No model is called here. The reply is composed from the facts alone, which
+    makes the demo free to run, impossible to talk into saying something it
+    should not, and an honest picture of what the system actually knows - the
+    model only ever changes the wording.
+    """
+    assert _AGENCY is not None
+
+    state = qualify.Lead(
+        budget_aed=turn.lead.get("budget_aed"),
+        beds=turn.lead.get("beds"),
+        area=turn.lead.get("area"),
+        timeline=turn.lead.get("timeline"),
+        purpose=turn.lead.get("purpose"),
+        payment=turn.lead.get("payment"),
+        name=turn.lead.get("name"),
+    )
+
+    reply = engine.respond(turn.text.strip()[:400], _AGENCY, lead=state)
+    g, reason = qualify.grade(reply.lead)
+
+    return {
+        "reply": reply.text,
+        "handover": reply.handover,
+        "handover_reason": reply.handover_reason,
+        "intent": reply.intent.value,
+        "lead": reply.lead.as_dict(),
+        "grade": g.value,
+        "grade_reason": reason,
+        "summary": qualify.summary(reply.lead),
+        "known": reply.lead.known,
+    }
 
 
 @app.get("/webhook")
