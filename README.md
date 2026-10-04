@@ -156,7 +156,7 @@ app/ads/
   insights.py    reporting. Real cost per lead.
   rules.py       budget rules. evaluate() pure, apply() dry by default.
   capi.py        Conversions API. Hashed, deduplicated.
-app/              whatsapp.py, llm.py, guard.py, db.py, scheduler.py ... shared, domain-free
+app/              main.py, whatsapp.py, llm.py, guard.py, config.py - shared, domain-free
 agencies/demo/    inventory.yaml - projects, prices, handover, payment plans, DLD numbers, fees
 prompts/          every model prompt is a file, not a string in the code
 ```

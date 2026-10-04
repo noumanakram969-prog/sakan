@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     # the cheap model still writes the wording (compose).
     openai_classify_model: str = "gpt-4o"
 
-    database_url: str = "sqlite:///./mistri.db"
+    database_url: str = "sqlite:///./sakan.db"
     db_pool_size: int = 5
     db_max_overflow: int = 10
     admin_user: str = "admin"

@@ -1,4 +1,4 @@
-# Mistri - WhatsApp assistant for garages.
+# Sakan - WhatsApp lead agent for a Dubai brokerage.
 #
 # Multi-stage so the runtime image carries no build toolchain.
 
@@ -14,7 +14,7 @@ FROM python:3.11-slim AS runtime
 
 # Run as a non-root user. A webhook endpoint is public by definition; it has no
 # business running as root.
-RUN useradd --create-home --uid 10001 mistri
+RUN useradd --create-home --uid 10001 sakan
 
 WORKDIR /app
 ENV PATH="/opt/venv/bin:$PATH" \
@@ -22,12 +22,11 @@ ENV PATH="/opt/venv/bin:$PATH" \
     PYTHONDONTWRITEBYTECODE=1
 
 COPY --from=build /opt/venv /opt/venv
-COPY --chown=mistri:mistri app ./app
-COPY --chown=mistri:mistri prompts ./prompts
-COPY --chown=mistri:mistri garages ./garages
-COPY --chown=mistri:mistri templates ./templates
+COPY --chown=sakan:sakan app ./app
+COPY --chown=sakan:sakan prompts ./prompts
+COPY --chown=sakan:sakan agencies ./agencies
 
-USER mistri
+USER sakan
 EXPOSE 8123
 
 # The container is unhealthy the moment the app stops answering, not merely when
