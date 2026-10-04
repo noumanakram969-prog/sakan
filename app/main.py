@@ -175,6 +175,57 @@ def demo(turn: DemoTurn) -> dict[str, Any]:
     }
 
 
+# One week of plausible ad-set numbers. Invented, and labelled as such on the
+# page - the point being demonstrated is the rule engine, which is real.
+_SAMPLE_ADSETS = [
+    ("23851", "JVC buyers 25-45", 18400, 612, 742.0, 21, 8000),
+    ("23852", "Dubai Hills 35-60", 12100, 240, 610.0, 6, 9000),
+    ("23853", "Business Bay broad", 9800, 118, 388.0, 0, 6000),
+    ("23854", "Retarget site 30d", 4200, 190, 96.0, 7, 4000),
+]
+
+
+@app.get("/demo/ads")
+def demo_ads(target_cpl: float = 40.0) -> dict[str, Any]:
+    """What the budget rules would do, at the target the visitor picks.
+
+    The real `rules.evaluate` runs here. It is a pure function over rows and
+    budgets, so it needs no ad account and touches nothing - which is exactly
+    why deciding was separated from doing in the first place.
+    """
+    from .ads.insights import Row, summarise
+    from .ads.rules import RuleSet, evaluate
+
+    target_cpl = max(1.0, min(float(target_cpl), 10_000.0))
+
+    rows = [
+        Row("adset", oid, name, impressions=imp, clicks=clk, spend=spend,
+            leads=leads, date_start="", date_stop="")
+        for oid, name, imp, clk, spend, leads, _ in _SAMPLE_ADSETS
+    ]
+    budgets = {oid: budget for oid, _, _, _, _, _, budget in _SAMPLE_ADSETS}
+
+    actions = evaluate(rows, budgets, RuleSet(target_cost_per_lead=target_cpl))
+
+    return {
+        "target_cpl": target_cpl,
+        "rows": [r.as_dict() for r in sorted(
+            rows, key=lambda r: (r.cost_per_lead is None, r.cost_per_lead or 0))],
+        "total": summarise(rows),
+        "actions": [
+            {
+                "verb": a.verb,
+                "name": a.name,
+                "reason": a.reason,
+                "from": a.current_budget_minor,
+                "to": a.new_budget_minor,
+            }
+            for a in actions
+        ],
+        "applied": False,
+    }
+
+
 @app.get("/webhook")
 def verify(request: Request) -> Response:
     """Meta's one-time subscription handshake."""

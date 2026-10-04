@@ -165,6 +165,38 @@ section{margin-top:clamp(56px,9vw,104px)}
 .key .yes{color:var(--jade)}
 .key .part{color:var(--amber)}
 .key .no{color:var(--stop)}
+
+/* ---- ads rules demo ---- */
+.ads{margin-top:28px;display:grid;grid-template-columns:1.15fr .85fr;gap:18px}
+@media (max-width:840px){.ads{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;min-width:0}
+.panel h3{font-size:15px;font-weight:600;margin-bottom:12px}
+.tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+.tbl th{
+  text-align:right;font-weight:400;color:var(--muted);padding:0 0 8px;
+  border-bottom:1px solid var(--line);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+}
+.tbl th:first-child{text-align:left}
+.tbl td{padding:8px 0;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}
+.tbl td:first-child{text-align:left;color:var(--ink)}
+.tbl tr:last-child td{border-bottom:0}
+.tbl .none{color:var(--stop)}
+.tbl .best{color:var(--jade)}
+.dial{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.dial label{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.dial input[type=range]{flex:1;min-width:140px;accent-color:var(--jade)}
+.dial output{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--jade);min-width:72px;text-align:right}
+.acts{display:flex;flex-direction:column;gap:9px;margin-top:4px}
+.act{
+  font-family:var(--mono);font-size:12px;line-height:1.45;padding:10px 12px;border-radius:9px;
+  border:1px solid var(--line);background:var(--ground);
+}
+.act .v{font-weight:500}
+.act.raise .v{color:var(--jade)}
+.act.lower .v{color:var(--amber)}
+.act.pause .v{color:var(--stop)}
+.act .why{color:var(--muted);display:block;margin-top:3px}
+.dry{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:12px;line-height:1.6}
 /* ---- stack table ---- */
 .stack{margin-top:28px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface)}
 .stack .row{display:grid;grid-template-columns:200px 1fr;gap:0;border-bottom:1px solid var(--line)}
@@ -272,6 +304,78 @@ footer{margin-top:clamp(56px,9vw,100px);border-top:1px solid var(--line);padding
 
   <section>
     <div class="sec-head">
+      <div class="eyebrow">Coverage</div>
+      <h2>What it does, and what it doesn't.</h2>
+      <p>The honest version. Three of these are integrations into systems I haven't seen yet, and one is a dashboard nobody has asked for.</p>
+    </div>
+
+    <div class="cov">
+      <div class="r">
+        <div class="m yes">✓</div>
+        <div class="t">WhatsApp agent: lead qualification and conversations</div>
+        <div class="d">Meta Cloud API direct — webhook signature verification, interactive replies, four languages. Five qualification signals, graded with the reason. Conversations persisted as the model's memory and the audit trail.</div>
+      </div>
+      <div class="r">
+        <div class="m yes">✓</div>
+        <div class="t">Meta Marketing API: campaigns, budget rules, creative tests, reporting</div>
+        <div class="d">All four. Objects are created paused with no override, budgets are integers in minor units, and the budget rules evaluate as a pure function then apply as a dry run by default.</div>
+      </div>
+      <div class="r">
+        <div class="m yes">✓</div>
+        <div class="t">Pixel / Conversions API tracking</div>
+        <div class="d">Server-side events with PII normalised and SHA-256'd before sending, and an event id on every one so the pixel and the server deduplicate. Without that, cost per lead reads at half its real value.</div>
+      </div>
+      <div class="r">
+        <div class="m yes">✓</div>
+        <div class="t">Cost control for LLM usage</div>
+        <div class="d">Every call metered, attributed to the conversation that caused it. Three ceilings — per conversation per day, and per month — checked <i>before</i> the call. Going over hands the customer to a human rather than erroring.</div>
+      </div>
+      <div class="r">
+        <div class="m yes">✓</div>
+        <div class="t">Logging and error handling</div>
+        <div class="d">Writes to the ads API are logged before they are sent, redacted, so "did we do that?" always has an answer. A model that fails, misbehaves or goes over budget degrades to a handover — never to a number.</div>
+      </div>
+      <div class="r">
+        <div class="m yes">✓</div>
+        <div class="t">Documentation: architecture, credentials, runbooks</div>
+        <div class="d">Written as the work was done rather than afterwards. Every prompt is a file, every guarantee has a test naming the failure it prevents.</div>
+      </div>
+      <div class="r">
+        <div class="m part">~</div>
+        <div class="t">Follow-ups</div>
+        <div class="d">Agent-side is live: unclaimed hot leads are chased after two hours, and a summary goes out at six. Customer-side reminders need WhatsApp templates approved against the brokerage's own number, which cannot happen before that number is connected.</div>
+      </div>
+      <div class="r">
+        <div class="m part">~</div>
+        <div class="t">Connect the stack: webhooks, REST APIs, event tracking</div>
+        <div class="d">Webhooks in, Graph API out, conversion events back. The web platform and analytics ends are standard once there is something to point them at.</div>
+      </div>
+      <div class="r">
+        <div class="m no">✗</div>
+        <div class="t">CRM write-back</div>
+        <div class="d">The graded lead is produced and served over an endpoint; nothing pushes it into a CRM yet. That is one function once I can see which CRM and what its lead object looks like.</div>
+      </div>
+      <div class="r">
+        <div class="m no">✗</div>
+        <div class="t">Monitoring beyond health checks</div>
+        <div class="d">There is a health endpoint, a spend endpoint and a lead endpoint. No metrics pipeline and no alerting — worth adding when somebody other than me is on call.</div>
+      </div>
+      <div class="r">
+        <div class="m no">✗</div>
+        <div class="t">Product analytics, and Lead Ads form ingestion</div>
+        <div class="d">No PostHog, and the <i>leadgen</i> webhook that would drop a Meta form submission straight into the agent's queue is not built.</div>
+      </div>
+    </div>
+
+    <div class="key">
+      <span><i class="yes">✓</i> built and running</span>
+      <span><i class="part">~</i> partly, and the rest is blocked on access</span>
+      <span><i class="no">✗</i> not built</span>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
       <div class="eyebrow">The two refusals</div>
       <h2>A chatbot that is usually right is no use here.</h2>
       <p>A buyer repeats your number to their bank. One invented figure is the brokerage's problem, not the model's — so the model is never the source of one.</p>
@@ -358,75 +462,39 @@ footer{margin-top:clamp(56px,9vw,100px);border-top:1px solid var(--line);padding
   </section>
 
 
+
   <section>
     <div class="sec-head">
-      <div class="eyebrow">Coverage</div>
-      <h2>What it does, and what it doesn't.</h2>
-      <p>The honest version. Three of these are integrations into systems I haven't seen yet, and one is a dashboard nobody has asked for.</p>
+      <div class="eyebrow">The ads side</div>
+      <h2>It decides, then it asks.</h2>
+      <p>Last week's ad sets, and what the budget rules propose. Move the target and watch the decisions change — this is the real rule engine running, not a picture of one.</p>
     </div>
 
-    <div class="cov">
-      <div class="r">
-        <div class="m yes">✓</div>
-        <div class="t">WhatsApp agent: lead qualification and conversations</div>
-        <div class="d">Meta Cloud API direct — webhook signature verification, interactive replies, four languages. Five qualification signals, graded with the reason. Conversations persisted as the model's memory and the audit trail.</div>
+    <div class="ads">
+      <div class="panel">
+        <h3>Last 7 days</h3>
+        <table class="tbl">
+          <thead>
+            <tr><th>Ad set</th><th>Spend</th><th>Leads</th><th>CPL</th><th>CTR</th></tr>
+          </thead>
+          <tbody id="adsrows"></tbody>
+        </table>
       </div>
-      <div class="r">
-        <div class="m yes">✓</div>
-        <div class="t">Meta Marketing API: campaigns, budget rules, creative tests, reporting</div>
-        <div class="d">All four. Objects are created paused with no override, budgets are integers in minor units, and the budget rules evaluate as a pure function then apply as a dry run by default.</div>
-      </div>
-      <div class="r">
-        <div class="m yes">✓</div>
-        <div class="t">Pixel / Conversions API tracking</div>
-        <div class="d">Server-side events with PII normalised and SHA-256'd before sending, and an event id on every one so the pixel and the server deduplicate. Without that, cost per lead reads at half its real value.</div>
-      </div>
-      <div class="r">
-        <div class="m yes">✓</div>
-        <div class="t">Cost control for LLM usage</div>
-        <div class="d">Every call metered, attributed to the conversation that caused it. Three ceilings — per conversation per day, and per month — checked <i>before</i> the call. Going over hands the customer to a human rather than erroring.</div>
-      </div>
-      <div class="r">
-        <div class="m yes">✓</div>
-        <div class="t">Logging and error handling</div>
-        <div class="d">Writes to the ads API are logged before they are sent, redacted, so "did we do that?" always has an answer. A model that fails, misbehaves or goes over budget degrades to a handover — never to a number.</div>
-      </div>
-      <div class="r">
-        <div class="m yes">✓</div>
-        <div class="t">Documentation: architecture, credentials, runbooks</div>
-        <div class="d">Written as the work was done rather than afterwards. Every prompt is a file, every guarantee has a test naming the failure it prevents.</div>
-      </div>
-      <div class="r">
-        <div class="m part">~</div>
-        <div class="t">Follow-ups</div>
-        <div class="d">Agent-side is live: unclaimed hot leads are chased after two hours, and a summary goes out at six. Customer-side reminders need WhatsApp templates approved against the brokerage's own number, which cannot happen before that number is connected.</div>
-      </div>
-      <div class="r">
-        <div class="m part">~</div>
-        <div class="t">Connect the stack: webhooks, REST APIs, event tracking</div>
-        <div class="d">Webhooks in, Graph API out, conversion events back. The web platform and analytics ends are standard once there is something to point them at.</div>
-      </div>
-      <div class="r">
-        <div class="m no">✗</div>
-        <div class="t">CRM write-back</div>
-        <div class="d">The graded lead is produced and served over an endpoint; nothing pushes it into a CRM yet. That is one function once I can see which CRM and what its lead object looks like.</div>
-      </div>
-      <div class="r">
-        <div class="m no">✗</div>
-        <div class="t">Monitoring beyond health checks</div>
-        <div class="d">There is a health endpoint, a spend endpoint and a lead endpoint. No metrics pipeline and no alerting — worth adding when somebody other than me is on call.</div>
-      </div>
-      <div class="r">
-        <div class="m no">✗</div>
-        <div class="t">Product analytics, and Lead Ads form ingestion</div>
-        <div class="d">No PostHog, and the <i>leadgen</i> webhook that would drop a Meta form submission straight into the agent's queue is not built.</div>
-      </div>
-    </div>
 
-    <div class="key">
-      <span><i class="yes">✓</i> built and running</span>
-      <span><i class="part">~</i> partly, and the rest is blocked on access</span>
-      <span><i class="no">✗</i> not built</span>
+      <div class="panel">
+        <h3>What the rules propose</h3>
+        <div class="dial">
+          <label for="cpl">target CPL</label>
+          <input id="cpl" type="range" min="10" max="150" step="5" value="40">
+          <output id="cplout">AED 40</output>
+        </div>
+        <div class="acts" id="adsacts"></div>
+        <div class="dry">
+          Nothing has been changed. <code>evaluate</code> is a pure function and
+          <code>apply</code> is a dry run unless told otherwise — a budget rule that
+          acts the moment it forms an opinion is how an account gets emptied overnight.
+        </div>
+      </div>
     </div>
   </section>
 
@@ -565,6 +633,59 @@ footer{margin-top:clamp(56px,9vw,100px);border-top:1px solid var(--line);padding
   document.querySelectorAll('.try .hint b').forEach(function (b) {
     b.addEventListener('click', function () { ask(b.dataset.q); });
   });
+})();
+</script>
+
+<script>
+(function () {
+  var slider = document.getElementById('cpl');
+  var out = document.getElementById('cplout');
+  var rowsEl = document.getElementById('adsrows');
+  var actsEl = document.getElementById('adsacts');
+  if (!slider) return;
+
+  var VERB = {increase_budget: ['raise', 'RAISE'], decrease_budget: ['lower', 'LOWER'], pause: ['pause', 'PAUSE']};
+  var timer = null;
+
+  function money(n) { return n === null || n === undefined ? '-' : Number(n).toFixed(2); }
+  function aed(minor) { return 'AED ' + (minor / 100).toFixed(0); }
+
+  function paint(data) {
+    rowsEl.innerHTML = data.rows.map(function (r, i) {
+      var cpl = r.cost_per_lead === null
+        ? '<span class="none">no leads</span>'
+        : (i === 0 ? '<span class="best">' + money(r.cost_per_lead) + '</span>' : money(r.cost_per_lead));
+      return '<tr><td>' + r.name + '</td><td>' + money(r.spend) + '</td><td>' + r.leads
+           + '</td><td>' + cpl + '</td><td>' + r.ctr.toFixed(2) + '%</td></tr>';
+    }).join('');
+
+    actsEl.innerHTML = data.actions.length
+      ? data.actions.map(function (a) {
+          var v = VERB[a.verb] || ['', a.verb];
+          var move = a.verb === 'pause' ? '' : '  ' + aed(a.from) + ' → ' + aed(a.to);
+          return '<div class="act ' + v[0] + '"><span class="v">' + v[1] + '</span> '
+               + a.name + move + '<span class="why">' + a.reason + '</span></div>';
+        }).join('')
+      : '<div class="act"><span class="v">NO CHANGE</span><span class="why">'
+        + 'nothing is far enough from target, or the sample is too small to judge</span></div>';
+  }
+
+  async function load() {
+    var t = slider.value;
+    out.textContent = 'AED ' + t;
+    try {
+      var res = await fetch('/demo/ads?target_cpl=' + t);
+      paint(await res.json());
+    } catch (e) { /* the page still reads fine without it */ }
+  }
+
+  slider.addEventListener('input', function () {
+    out.textContent = 'AED ' + slider.value;
+    clearTimeout(timer);
+    timer = setTimeout(load, 120);
+  });
+
+  load();
 })();
 </script>
 </body>
