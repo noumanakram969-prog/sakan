@@ -130,6 +130,27 @@ Full architecture, credentials handling and runbook: [docs/ADS.md](docs/ADS.md).
 
 ---
 
+## What it remembers
+
+Three things, all in PostgreSQL (SQLite in the tests, a `DATABASE_URL` change and nothing else):
+
+**The lead**, unique on agency and WhatsApp number — a buyer who messaged on Tuesday and again on Friday is one lead, not two. Asking a returning buyer for their budget a second time is the clearest possible signal that nobody is really listening.
+
+**The conversation**, which is the model's memory and the audit trail at once. When a buyer disputes what they were quoted, that table is the answer. The provider's own message id is a unique column, because Meta redelivers anything it did not get a prompt 200 for — without it, a slow reply becomes a customer answered three times.
+
+**The spend**, one row per conversation per day. A cap that resets on deploy is not a cap.
+
+One inbound message is one transaction. A reply that went out while the lead update rolled back is the kind of inconsistency nobody finds until a customer points at it.
+
+## Background jobs
+
+Both exist because of the same failure: a lead answered perfectly, then left sitting.
+
+- **Chase unclaimed hot leads**, every 30 minutes. Somebody said "cash, this month" at 9pm and no human has picked it up two hours later. The expensive mistake in a brokerage is not a bad reply, it is a good lead going cold while everyone assumes somebody else called. A lead is marked only once the nudge is actually sent, so a failed send retries instead of being silently dropped.
+- **The evening summary** at 6pm: what came in, what is still unclaimed, what the month has cost.
+
+APScheduler in-process, which suits one box. On more than one they move to a worker with a lock — two instances both sending the evening summary is the obvious first bug, so it is written down rather than discovered.
+
 ## What it costs to run
 
 An agent that answers every message is a variable cost on every message, and the bill surprises you in two ways: one runaway thread, or a quiet drift upward that no single reply makes visible.
@@ -150,7 +171,7 @@ An unknown model bills at the **highest** rate we know rather than at zero — a
 ## Tests
 
 ```
-91 tests · model and Meta stubbed throughout · no network
+106 tests · model and Meta stubbed throughout · no network
 .venv/Scripts/python -m pytest tests/test_property.py tests/test_ads.py -q
 ```
 
@@ -167,7 +188,10 @@ app/property/
   inventory.py   price retrieval, never generation. Parses beds/area/budget as people type them.
   qualify.py     the five signals, the next question, the grade and its reason
   engine.py      one message in, one reply out
+app/db.py        the schema - agencies, leads, messages, spend. Every row tenant-scoped.
+app/store.py     the questions the agent asks of it, in one place
 app/cost.py      token metering, per-conversation and monthly caps, the spend report
+app/jobs.py      chase unclaimed hot leads; the evening summary
 app/ads/
   client.py      the only thing that speaks HTTP to Meta
   campaigns.py   campaign -> ad set -> creative -> ad. All PAUSED.

@@ -271,6 +271,84 @@ def _utcdate() -> date:
     return datetime.now(timezone.utc).date()
 
 
+class DbMeter(Meter):
+    """The same meter, with the ledger in the database.
+
+    Subclassed rather than branched inside Meter: the in-memory one stays the
+    thing the tests use and the thing that works with no database at all, and
+    the deployment gets durability without a second implementation of the caps.
+    """
+
+    def __init__(self, agency_id: str, caps: "Caps | None" = None) -> None:
+        super().__init__(caps)
+        self.agency_id = agency_id
+
+    def check(self, conversation: str, *, today: date | None = None) -> None:
+        from . import db, store
+
+        d = today or _utcdate()
+        with db.session() as s:
+            calls, usd = store.spend_today(s, self.agency_id, conversation, d)
+            _, month_usd = store.spend_month(s, self.agency_id, d.strftime("%Y-%m"))
+
+        if calls >= self.caps.calls_per_conversation_per_day:
+            raise CapExceeded("calls per conversation today",
+                              calls, self.caps.calls_per_conversation_per_day)
+        if usd >= self.caps.usd_per_conversation_per_day:
+            raise CapExceeded("usd per conversation today",
+                              usd, self.caps.usd_per_conversation_per_day)
+        if month_usd >= self.caps.usd_per_month:
+            raise CapExceeded("usd this month", month_usd, self.caps.usd_per_month)
+
+    def record(self, conversation: str, model: str, input_tokens: int,
+               output_tokens: int, *, today: date | None = None) -> float:
+        from . import db, store
+
+        usd = cost_usd(model, input_tokens, output_tokens)
+        d = today or _utcdate()
+        with db.session() as s:
+            store.add_spend(s, self.agency_id, conversation, d, calls=1,
+                            input_tokens=input_tokens, output_tokens=output_tokens, usd=usd)
+            s.commit()
+            _, month_usd = store.spend_month(s, self.agency_id, d.strftime("%Y-%m"))
+
+        log.info("llm %s in=%d out=%d cost=$%.5f month=$%.2f",
+                 model, input_tokens, output_tokens, usd, month_usd)
+        if month_usd >= self.caps.usd_per_month * 0.8:
+            log.warning("month spend $%.2f is past 80%% of the $%.2f cap",
+                        month_usd, self.caps.usd_per_month)
+        return usd
+
+    def report(self, month: str | None = None) -> dict[str, Any]:
+        from sqlalchemy import func, select
+        from . import db, store
+
+        m = month or _utcdate().strftime("%Y-%m")
+        with db.session() as s:
+            calls, usd = store.spend_month(s, self.agency_id, m)
+            rows = s.execute(
+                select(db.Spend.conversation,
+                       func.sum(db.Spend.calls), func.sum(db.Spend.usd))
+                .where(db.Spend.agency_id == self.agency_id,
+                       db.Spend.day >= date.fromisoformat(m + "-01"))
+                .group_by(db.Spend.conversation)
+                .order_by(func.sum(db.Spend.usd).desc())
+                .limit(10)
+            ).all()
+
+        return {
+            "month": m,
+            "total": {"calls": calls, "usd": round(usd, 5)},
+            "cap_usd": self.caps.usd_per_month,
+            "used_pct": round(usd / self.caps.usd_per_month * 100, 1) if self.caps.usd_per_month else 0.0,
+            "cost_per_call": round(usd / calls, 5) if calls else 0.0,
+            "top_conversations": [
+                {"conversation": _redact(c), "calls": int(n), "usd": round(float(u), 5)}
+                for c, n, u in rows
+            ],
+        }
+
+
 def _redact(number: str) -> str:
     """A cost report is not a reason to put customer numbers in a log."""
     return f"•••{number[-4:]}" if len(number) > 4 else "•••"
